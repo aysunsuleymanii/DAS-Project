@@ -1,0 +1,43 @@
+services:
+  scraper_service:
+    build:
+      context: /Users/aysunsuleymanturk/Desktop/FINAL/Homework1
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - ./scraper_service:/app
+      - ./Homework1:/app/data
+    command: [ "python", "-m", "asyncio", "run", "first_version.py" ]
+    networks:
+      - app_network
+
+  django_service:
+    build:
+      context: /Users/aysunsuleymanturk/Desktop/FINAL/Homework2/Technical Prototype
+      dockerfile: Dockerfile
+    volumes:
+      - /Users/aysunsuleymanturk/Desktop/FINAL/Homework1:/app/chart
+      - /Users/aysunsuleymanturk/Desktop/FINAL/Homework3:/app/data
+    ports:
+      - "8000:8000"
+    command: [ "sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000" ]
+    networks:
+      - app_network
+
+  analysis_service:
+    build:
+      context: /Users/aysunsuleymanturk/Desktop/FINAL/Homework3
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - /Users/aysunsuleymanturk/Desktop/FINAL/Homework3:/app
+      - /Users/aysunsuleymanturk/Desktop/FINAL/Homework1:/app/data
+    ports:
+      - "8001:8000"
+    command: [ "sh", "-c", "python3 predict.py && python3 scheduler.py && python3 scraper.py && python3 signals.py" ]
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
